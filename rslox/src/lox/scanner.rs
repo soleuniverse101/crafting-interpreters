@@ -72,7 +72,26 @@ impl Scanner {
                 };
                 self.add_token(token)
             }
+            '/' => {
+                if self.advance_if_matching('/') {
+                    while self.peek() != '\n' && !self.is_at_end() {
+                        self.advance();
+                    }
+                } else {
+                    self.add_token(TokenType::Slash);
+                }
+            }
+            ' ' | '\r' | '\t' => (),
+            '\n' => self.line += 1,
             _ => self.error_lines.push(self.line),
+        }
+    }
+
+    fn peek(&self) -> char {
+        if self.is_at_end() {
+            '\0'
+        } else {
+            self.source.chars().nth(self.current).unwrap()
         }
     }
 
@@ -100,22 +119,20 @@ impl Scanner {
     }
 
     pub fn scan_tokens(&mut self) -> Result<Vec<Token>, ScanningError> {
-        let mut tokens = Vec::new();
-
         while !self.is_at_end() {
             // We are at the beginning of the next lexeme.
             self.start = self.current;
             self.scan_token();
         }
 
-        tokens.push(Token {
+        self.tokens.push(Token {
             _type: TokenType::Eof,
             lexeme: String::new(),
             line: self.line,
         });
 
         if self.error_lines.is_empty() {
-            Ok(tokens)
+            Ok(self.tokens.to_vec())
         } else {
             Err(ScanningError {
                 lines: self.error_lines.to_owned(),
