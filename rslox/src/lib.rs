@@ -39,7 +39,7 @@ pub fn run_prompt() {
             Ok(_) => (),
             Err(_) => break,
         }
-        if let Err(err) = lox.run(&line) {
+        if let Err(err) = lox.run(line.trim()) {
             match err {
                 Error::Scanning { lines } => match lines.len() {
                     1 => eprintln!("Scanning error encountered on line {}", lines[1]),
