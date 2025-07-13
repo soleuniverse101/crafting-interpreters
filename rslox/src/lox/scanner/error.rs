@@ -4,6 +4,7 @@ use std::fmt;
 pub enum Type {
     UnexpectedCharacter,
     UnterminatedString,
+    UnterminatedComment,
 }
 
 impl fmt::Display for Type {
@@ -14,6 +15,7 @@ impl fmt::Display for Type {
             match self {
                 Self::UnexpectedCharacter => "Unexpected character",
                 Self::UnterminatedString => "Unterminated string",
+                Self::UnterminatedComment => "Unterminated comment",
             }
         )
     }

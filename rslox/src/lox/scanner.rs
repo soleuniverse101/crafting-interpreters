@@ -74,9 +74,12 @@ impl Scanner {
             }
             '/' => {
                 if self.advance_if_matching('/') {
+                    // Line comment
                     while self.peek() != '\n' && !self.is_at_end() {
                         self.advance();
                     }
+                } else if self.advance_if_matching('*') {
+                    self.block_comment();
                 } else {
                     self.add_token(TokenType::Slash);
                 }
@@ -130,6 +133,42 @@ impl Scanner {
         self.add_token(TokenType::Number(
             self.source[self.start..self.current].parse().unwrap(),
         ));
+    }
+
+    fn block_comment(&mut self) {
+        let mut nesting = 1;
+
+        loop {
+            if self.is_at_end() {
+                break;
+            }
+
+            if self.peek() == '*' && self.peek_next() == '/' {
+                self.advance();
+                self.advance();
+
+                nesting -= 1;
+
+                if nesting == 0 {
+                    return;
+                }
+            } else if self.peek() == '/' && self.peek_next() == '*' {
+                nesting += 1;
+
+                self.advance();
+                self.advance();
+            } else {
+                self.advance();
+            }
+        }
+
+        if self.is_at_end() {
+            self.errors.push(ScanningError {
+                _type: error::Type::UnterminatedComment,
+                line: self.line,
+            });
+            return;
+        }
     }
 
     fn string(&mut self) {
