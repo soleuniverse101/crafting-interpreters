@@ -4,7 +4,7 @@ mod token;
 
 use crate::lox::{
     error::{Error, Result},
-    scanner::{Scanner, error::ScanningError},
+    scanner::Scanner,
 };
 
 struct Context {
@@ -34,7 +34,7 @@ impl Lox {
 
         for token in scanner
             .scan_tokens()
-            .map_err(|ScanningError { lines }| Error::Scanning { lines })?
+            .map_err(|errors| Error::Scanning(errors))?
         {
             println!("{token:#?}");
         }

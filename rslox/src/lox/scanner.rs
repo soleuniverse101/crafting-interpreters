@@ -11,7 +11,7 @@ pub struct Scanner {
     start: usize,
     current: usize,
     line: usize,
-    error_lines: Vec<usize>,
+    errors: Vec<ScanningError>,
 }
 
 impl Scanner {
@@ -22,7 +22,7 @@ impl Scanner {
             start: 0,
             current: 0,
             line: 1,
-            error_lines: Vec::new(),
+            errors: Vec::new(),
         }
     }
 
@@ -83,8 +83,35 @@ impl Scanner {
             }
             ' ' | '\r' | '\t' => (),
             '\n' => self.line += 1,
-            _ => self.error_lines.push(self.line),
+            '"' => self.string(),
+            _ => self.errors.push(ScanningError {
+                _type: error::Type::UnexpectedCharacter,
+                line: self.line,
+            }),
         }
+    }
+
+    fn string(&mut self) {
+        while self.peek() != '"' && !self.is_at_end() {
+            if self.peek() == '\n' {
+                self.line += 1;
+            }
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            self.errors.push(ScanningError {
+                _type: error::Type::UnterminatedString,
+                line: self.line,
+            });
+            return;
+        }
+
+        self.advance();
+
+        self.add_token(TokenType::String(
+            self.source[self.start + 1..self.current - 1].to_owned(),
+        ));
     }
 
     fn peek(&self) -> char {
@@ -118,7 +145,7 @@ impl Scanner {
         });
     }
 
-    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, ScanningError> {
+    pub fn scan_tokens(&mut self) -> Result<Vec<Token>, Vec<ScanningError>> {
         while !self.is_at_end() {
             // We are at the beginning of the next lexeme.
             self.start = self.current;
@@ -131,12 +158,10 @@ impl Scanner {
             line: self.line,
         });
 
-        if self.error_lines.is_empty() {
+        if self.errors.is_empty() {
             Ok(self.tokens.to_vec())
         } else {
-            Err(ScanningError {
-                lines: self.error_lines.to_owned(),
-            })
+            Err(self.errors.to_vec())
         }
     }
 

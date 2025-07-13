@@ -15,7 +15,7 @@ fn main() -> ExitCode {
         };
 
         match err {
-            Error::Scanning { lines: _ } => ExitCode::DataErr,
+            Error::Scanning(_) => ExitCode::DataErr,
         }
     } else {
         run_prompt();

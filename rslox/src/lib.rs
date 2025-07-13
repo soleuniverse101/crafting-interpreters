@@ -4,7 +4,7 @@ use std::{
     path::Path,
 };
 
-use crate::lox::error::{Error, Result};
+use crate::lox::error::{Result, print_error};
 
 pub mod lox;
 
@@ -40,18 +40,7 @@ pub fn run_prompt() {
             Err(_) => break,
         }
         if let Err(err) = lox.run(line.trim()) {
-            match err {
-                Error::Scanning { lines } => match lines.len() {
-                    1 => eprintln!("Scanning error encountered on line {}", lines[1]),
-                    _ => {
-                        eprint!("Scanning errors encountered on lines ");
-                        for line in &lines[..lines.len() - 1] {
-                            eprint!("{line}, ");
-                        }
-                        eprintln!("{}", lines.last().unwrap());
-                    }
-                },
-            }
+            print_error(&err);
         }
     }
 }

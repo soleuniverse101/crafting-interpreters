@@ -1,7 +1,7 @@
-use crate::lox::Lox;
+use crate::lox::{Lox, scanner::error::ScanningError};
 
 pub enum Error {
-    Scanning { lines: Vec<usize> },
+    Scanning(Vec<ScanningError>),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -14,5 +14,15 @@ impl Lox {
 
     pub fn error(&mut self, line: i32, message: &str) {
         self.report(line, "", message);
+    }
+}
+
+pub fn print_error(error: &Error) {
+    match error {
+        Error::Scanning(errors) => {
+            for error in errors {
+                eprintln!("{} error encountered on line {}", error._type, error.line)
+            }
+        }
     }
 }
