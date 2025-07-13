@@ -27,9 +27,9 @@ impl Scanner {
     }
 
     fn scan_token(&mut self) {
-        let c = self.advance();
+        // let c = self.advance();
 
-        match c {
+        match self.advance() {
             '(' => self.add_token(TokenType::LeftParen),
             ')' => self.add_token(TokenType::RightParen),
             '{' => self.add_token(TokenType::LeftBrace),
@@ -84,11 +84,35 @@ impl Scanner {
             ' ' | '\r' | '\t' => (),
             '\n' => self.line += 1,
             '"' => self.string(),
-            _ => self.errors.push(ScanningError {
-                _type: error::Type::UnexpectedCharacter,
-                line: self.line,
-            }),
+            c => {
+                if c.is_ascii_digit() {
+                    self.number();
+                } else {
+                    self.errors.push(ScanningError {
+                        _type: error::Type::UnexpectedCharacter,
+                        line: self.line,
+                    })
+                }
+            }
         }
+    }
+
+    fn number(&mut self) {
+        while self.peek().is_ascii_digit() {
+            self.advance();
+        }
+
+        if self.peek() == '.' && self.peek_next().is_ascii_digit() {
+            self.advance();
+
+            while self.peek().is_ascii_digit() {
+                self.advance();
+            }
+        }
+
+        self.add_token(TokenType::Number(
+            self.source[self.start..self.current].parse().unwrap(),
+        ));
     }
 
     fn string(&mut self) {
@@ -119,6 +143,14 @@ impl Scanner {
             '\0'
         } else {
             self.source.chars().nth(self.current).unwrap()
+        }
+    }
+
+    fn peek_next(&self) -> char {
+        if self.current + 1 >= self.source.len() {
+            '\0'
+        } else {
+            self.source.chars().nth(self.current + 1).unwrap()
         }
     }
 
