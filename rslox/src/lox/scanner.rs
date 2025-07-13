@@ -2,7 +2,7 @@ pub mod error;
 
 use crate::lox::{
     scanner::error::ScanningError,
-    token::{Token, TokenType},
+    token::{Token, TokenType, keyword_from_str},
 };
 
 pub struct Scanner {
@@ -87,6 +87,8 @@ impl Scanner {
             c => {
                 if c.is_ascii_digit() {
                     self.number();
+                } else if c.is_ascii_alphabetic() || c == '_' {
+                    self.identifier();
                 } else {
                     self.errors.push(ScanningError {
                         _type: error::Type::UnexpectedCharacter,
@@ -95,6 +97,21 @@ impl Scanner {
                 }
             }
         }
+    }
+
+    fn identifier(&mut self) {
+        let mut c = self.peek();
+        while c.is_ascii_alphanumeric() || c == '_' {
+            self.advance();
+            c = self.peek();
+        }
+
+        let identifier = &self.source[self.start..self.current];
+
+        self.add_token(match keyword_from_str(identifier) {
+            Some(token_type) => token_type,
+            None => TokenType::Identifier,
+        });
     }
 
     fn number(&mut self) {
