@@ -1,3 +1,5 @@
+use crate::lox::types;
+
 #[derive(Debug, Clone)]
 pub enum TokenType {
     // Single-character tokens.
@@ -26,7 +28,7 @@ pub enum TokenType {
     // Literals.
     Identifier,
     String(String),
-    Number(f64),
+    Number(types::Number),
 
     // Keywords.
     And,
