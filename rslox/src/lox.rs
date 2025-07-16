@@ -2,6 +2,7 @@ pub mod error;
 pub mod types;
 pub mod scanner;
 mod token;
+mod parser;
 
 use crate::lox::{
     error::{Error, Result},
